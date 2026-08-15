@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.2 • المزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.3 • المزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -252,6 +252,11 @@ async function authLogin(){const email=$("authEmail").value.trim(),password=$("a
 async function authSignup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return alert("أدخل بريدًا صحيحًا وكلمة مرور من 6 أحرف على الأقل.");try{const d=await sb("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password})});if(d.access_token){saveSession({access_token:d.access_token,refresh_token:d.refresh_token,user:d.user});closeAuth();renderAuth();await migrateCloud();render()}else alert("تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلًا، أكد البريد ثم سجّل الدخول.")}catch(e){alert("تعذر إنشاء الحساب: "+e.message)}}
 async function logout(){try{await sb("/auth/v1/logout",{method:"POST"})}catch(e){}clearSession();renderAuth();render()}
 async function cloudGet(table){return sb("/rest/v1/"+table+"?select=*")}
+async function cloudDelete(table,id){
+  const s=session();if(!s?.user||!id)return;
+  const eid=encodeURIComponent(String(id)),uid=encodeURIComponent(String(s.user.id));
+  await sb("/rest/v1/"+table+"?id=eq."+eid+"&user_id=eq."+uid,{method:"DELETE",headers:{"Prefer":"return=minimal"}});
+}
 async function cloudUp(table,rows){
   const s=session();if(!s?.user||!rows.length)return;
   const payload=rows.map(x=>{
@@ -355,6 +360,8 @@ function remove(key,id){
   }
 
   set(key,arr.filter(x=>String(x.id)!==String(id)));
+  const cloudTable=key==="personal"?"personal_expenses":key;
+  cloudDelete(cloudTable,id).catch(e=>syncStatus("⚠️ لم يُحذف من السحابة: "+e.message));
   render();
 }
 function openModal(t,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=b;$("modal").classList.add("show")}function closeModal(){$("modal").classList.remove("show")}
@@ -389,8 +396,12 @@ function deleteMonth(){
     .reduce((s,x)=>s+(Number(x.distance)||0),0);
   if(removedDistance)updateOilFromDistance(-removedDistance);
 
-  for(const k of["days","fuels","expenses","personal"])
-    set(k,get(k).filter(x=>!x.date.startsWith(m)));
+  for(const k of["days","fuels","expenses","personal"]){
+    const rows=get(k),removed=rows.filter(x=>x.date.startsWith(m));
+    set(k,rows.filter(x=>!x.date.startsWith(m)));
+    const cloudTable=k==="personal"?"personal_expenses":k;
+    Promise.all(removed.map(x=>cloudDelete(cloudTable,x.id))).catch(e=>syncStatus("⚠️ لم يُحذف الشهر كاملًا من السحابة: "+e.message));
+  }
   render();
 }
 function simulateMonth(){const c=monthCalc($("month").value);openModal("✨ محاكاة نهاية الشهر",`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 مصاريف شخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><p class="note">المحاكاة لا تغلق الشهر ولا تغير البيانات.</p></div>`)}
@@ -503,6 +514,12 @@ if(!localStorage.getItem("oil")){
     interval:Math.max(1,Number(o.interval)||10000),
     driven:Math.max(0,Number(o.driven)||0)
   }));
+}
+if(localStorage.getItem("dd_oil_driven_v11_3_reset")!=="1"){
+  const o=getOil();
+  o.driven=0;
+  localStorage.setItem("oil",JSON.stringify(o));
+  localStorage.setItem("dd_oil_driven_v11_3_reset","1");
 }
 $("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();
 $("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
