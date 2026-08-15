@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.1 • المزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.2 • المزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -252,7 +252,17 @@ async function authLogin(){const email=$("authEmail").value.trim(),password=$("a
 async function authSignup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return alert("أدخل بريدًا صحيحًا وكلمة مرور من 6 أحرف على الأقل.");try{const d=await sb("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password})});if(d.access_token){saveSession({access_token:d.access_token,refresh_token:d.refresh_token,user:d.user});closeAuth();renderAuth();await migrateCloud();render()}else alert("تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلًا، أكد البريد ثم سجّل الدخول.")}catch(e){alert("تعذر إنشاء الحساب: "+e.message)}}
 async function logout(){try{await sb("/auth/v1/logout",{method:"POST"})}catch(e){}clearSession();renderAuth();render()}
 async function cloudGet(table){return sb("/rest/v1/"+table+"?select=*")}
-async function cloudUp(table,rows){const s=session();if(!s?.user||!rows.length)return;const payload=rows.map(x=>({...x,user_id:s.user.id}));await sb("/rest/v1/"+table,{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(payload)})}
+async function cloudUp(table,rows){
+  const s=session();if(!s?.user||!rows.length)return;
+  const payload=rows.map(x=>{
+    if(table==="days") return {id:x.id,user_id:s.user.id,date:x.date,parcels:Number(x.parcels)||0,distance:Number(x.distance)||0};
+    if(table==="fuels") return {id:x.id,user_id:s.user.id,date:x.date,price:Number(x.price)||0,liters:Number(x.liters)||0,odo:Number(x.odo)||0};
+    if(table==="expenses") return {id:x.id,user_id:s.user.id,date:x.date,amount:Number(x.amount)||0,note:x.note||""};
+    if(table==="personal_expenses") return {id:x.id,user_id:s.user.id,date:x.date,amount:Number(x.amount)||0,note:x.note||""};
+    return {...x,user_id:s.user.id};
+  });
+  await sb("/rest/v1/"+table,{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(payload)});
+}
 async function settingsUp(){const s=session();if(!s?.user)return;const o=getOil();await sb("/rest/v1/settings",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:s.user.id,goal:+localStorage.getItem("goal")||0,oil_remaining:+o.remaining||0,oil_interval:+o.interval||10000,oil_driven:+o.driven||0})})}
 async function pullCloud(){
   const s=session();if(!s?.user||cloudBusy)return;
@@ -277,7 +287,11 @@ async function pullCloud(){
 }
 async function migrateCloud(){const s=session();if(!s?.user)return;syncStatus("☁️ جاري رفع بيانات الجهاز...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();await pullCloud()}
 function queueCloudSync(){if(!session()?.user)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(syncNow,900)}
-async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري الحفظ...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();syncStatus("☁️ تمت المزامنة",true)}catch(e){syncStatus("⚠️ لم تكتمل المزامنة: "+e.message)}finally{cloudBusy=false}}
+async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري الحفظ...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();syncStatus("☁️ تمت المزامنة",true)}catch(e){
+  const msg=e.message||"خطأ غير معروف";
+  syncStatus("⚠️ لم تكتمل المزامنة: "+msg);
+  console.error("Delivery Desk sync error:",e);
+}finally{cloudBusy=false}}
 function monthData(month=$("month").value){return{days:get("days").filter(x=>x.date.startsWith(month)),fuels:get("fuels").filter(x=>x.date.startsWith(month)),expenses:get("expenses").filter(x=>x.date.startsWith(month)),personal:get("personal").filter(x=>x.date.startsWith(month))}}
 function fuelEstimate(){
   const f=get("fuels").filter(x=>x.odo>0&&x.liters>0).sort((a,b)=>a.odo-b.odo);
