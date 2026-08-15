@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.5 • صيانة الزيت • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.6 • صيانة الزيت + مزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -271,6 +271,15 @@ async function cloudUp(table,rows){
 async function settingsUp(){const s=session();if(!s?.user)return;const o=getOil();await sb("/rest/v1/settings",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:s.user.id,goal:+localStorage.getItem("goal")||0,oil_remaining:+o.remaining||0,oil_interval:+o.interval||10000,oil_driven:+o.driven||0})})}
 async function pullCloud(){
   const s=session();if(!s?.user||cloudBusy)return;
+  if(localStorage.getItem("dd_oil_dirty")==="1"){
+    try{
+      await settingsUp();
+      localStorage.removeItem("dd_oil_dirty");
+    }catch(e){
+      syncStatus("⚠️ تعذر حفظ عداد الزيت قبل التحميل: "+e.message);
+      return;
+    }
+  }
   cloudBusy=true;
   try{
     syncStatus("☁️ جاري تحميل البيانات...");
@@ -292,7 +301,7 @@ async function pullCloud(){
 }
 async function migrateCloud(){const s=session();if(!s?.user)return;syncStatus("☁️ جاري رفع بيانات الجهاز...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();await pullCloud()}
 function queueCloudSync(){if(!session()?.user)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(syncNow,900)}
-async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري الحفظ...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();syncStatus("☁️ تمت المزامنة",true)}catch(e){
+async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري الحفظ...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();localStorage.removeItem("dd_oil_dirty");syncStatus("☁️ تمت المزامنة",true)}catch(e){
   const msg=e.message||"خطأ غير معروف";
   syncStatus("⚠️ لم تكتمل المزامنة: "+msg);
   console.error("Delivery Desk sync error:",e);
@@ -343,6 +352,7 @@ function saveDay(){
   set("days",a);
   const delta=distance-oldDistance;
   if(delta!==0)updateOilFromDistance(delta);
+  if(session()?.user)syncNow();
   render();$("dayParcels").value="";$("dayDistance").value="";updateQuickEntry();$("dayParcels").focus();
 }
 function saveFuel(){let x={id:uid(),date:$("fuelDate").value,price:+$("fuelPrice").value||0,liters:+$("fuelLiters").value||0,odo:+$("fuelOdo").value||0};if(!x.date||!x.price||!x.liters||!x.odo)return alert("أكمل بيانات التعبئة.");let a=get("fuels");a.push(x);set("fuels",a);render();["fuelPrice","fuelLiters","fuelOdo"].forEach(id=>$(id).value="")}
@@ -413,16 +423,20 @@ function getOil(){
 }
 function saveOilSettings(){
   const old=getOil();
-  const interval=+$("oilInterval").value||10000;
+  const interval=Math.max(1,+$("oilInterval").value||10000);
   const remaining=Math.max(0,+$("oilRemainingInput").value||0);
-  set("oil",{remaining,interval,driven:old.driven||0});
+  localStorage.setItem("oil",JSON.stringify({remaining,interval,driven:Math.max(0,Number(old.driven)||0)}));
+  localStorage.setItem("dd_oil_dirty","1");
   render();
+  if(session()?.user)syncNow();
 }
 function oilChanged(){
-  const o=getOil(), interval=+$("oilInterval").value||o.interval||10000;
+  const o=getOil(), interval=Math.max(1,+$("oilInterval").value||o.interval||10000);
   if(!confirm(`تأكيد تغيير الزيت؟\\nسيتم إعادة العداد إلى ${interval.toLocaleString()} كم.`))return;
-  set("oil",{remaining:interval,interval,driven:0});
+  localStorage.setItem("oil",JSON.stringify({remaining:interval,interval,driven:0}));
+  localStorage.setItem("dd_oil_dirty","1");
   render();
+  if(session()?.user)syncNow();
 }
 function updateOilFromDistance(delta){
   const o=getOil();
@@ -439,6 +453,7 @@ function updateOilFromDistance(delta){
   o.remaining=Math.max(0,interval-driven);
 
   localStorage.setItem("oil",JSON.stringify(o));
+  localStorage.setItem("dd_oil_dirty","1");
   queueCloudSync();
 }
 function oilStatus(){
@@ -511,6 +526,7 @@ function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader
     render();alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
 async function repairOilState(){
   if(localStorage.getItem("dd_oil_repaired_v11_5")==="1")return;
+  if(localStorage.getItem("dd_oil_dirty")==="1")return;
 
   // V11.5: discard the stale maintenance distance from earlier test builds.
   // A fresh oil interval starts at zero driven distance.
