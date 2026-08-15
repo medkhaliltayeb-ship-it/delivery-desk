@@ -5,26 +5,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#635bff">
 <link rel="manifest" href="manifest.json">
-<title>Delivery Desk V7</title>
+<title>Delivery Desk V10</title>
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--ink:#172033;--muted:#748094;--line:#e5e9f1;--p:#635bff;--p2:#4f46e5;--green:#139b62;--red:#dc3c4a;--amber:#e9a400;--blue:#1683d8;--shadow:0 12px 32px rgba(23,32,51,.07)}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8f9fc,#eef2f8);color:var(--ink);font-family:Arial,"Segoe UI",Tahoma,sans-serif}
 .app{max-width:1250px;margin:auto;padding:22px 16px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px}.brand h1{margin:0;font-size:31px}.brand p{margin:6px 0 0;color:var(--muted)}
 .topActions{display:flex;gap:8px;align-items:end}.monthPick{width:170px}
+.dailyQuick{background:linear-gradient(135deg,#ffffff 0%,#f5f4ff 100%);border-color:#dcd9ff;box-shadow:0 16px 38px rgba(99,91,255,.10);margin-bottom:16px}.dailyTop{display:flex;justify-content:space-between;align-items:center;gap:12px}.dailyKicker{font-size:11px;font-weight:800;color:var(--p);background:#ebe9ff;border-radius:20px;padding:6px 10px}.dailyQuick h2{font-size:22px;margin:11px 0 3px}.dailyDate{font-size:13px;color:var(--muted)}.dailyInputs{display:grid;grid-template-columns:1.4fr .8fr auto;gap:12px;align-items:end;margin-top:17px}.dailyInputs input{height:48px}.parcelInput input{font-size:23px;font-weight:800}.dailySave{height:48px;margin:0;white-space:nowrap}.quickLast{margin-top:12px;padding-top:11px;border-top:1px solid #e5e2ff;font-size:12px;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:20px;box-shadow:var(--shadow)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.full{grid-column:1/-1}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:16px}.stat{padding:18px;border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.stat.primary{background:linear-gradient(135deg,var(--p),#827cff);color:#fff;border:0}.stat small{display:block;color:var(--muted);font-weight:700}.stat.primary small{color:#fff9}.stat strong{display:block;font-size:26px;margin-top:8px}.up{color:var(--green)!important}.down{color:var(--red)!important}
 h2{font-size:18px;margin:0 0 16px}h3{font-size:15px;margin:0 0 10px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}input,select{width:100%;padding:11px 12px;border:1px solid #d7ddea;border-radius:11px;background:#fff;font-size:15px;outline:0}input:focus,select:focus{border-color:var(--p);box-shadow:0 0 0 3px #635bff18}
 .btn{border:0;border-radius:11px;padding:11px 14px;font-size:14px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff}.btn.primary{background:linear-gradient(135deg,var(--p),var(--p2))}.btn.light{background:#eef1f6;color:var(--ink)}.btn.danger{background:#fff0f1;color:var(--red)}.btn.green{background:#eaf9f1;color:var(--green)}.wide{width:100%;margin-top:13px}.smallBtn{padding:7px 9px;font-size:12px}.actions{display:flex;gap:6px}
 .note{font-size:12px;color:var(--muted);line-height:1.6;margin:9px 0 0}.panel{background:#f7f8fc;border-radius:14px;padding:14px;margin-top:12px}.hidden{display:none}
 .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:#f7f8fc;border-radius:14px;padding:14px}.mini span{font-size:12px;color:var(--muted)}.mini b{display:block;font-size:21px;margin-top:6px}.mini.green{background:#edf9f3}.mini.green b{color:var(--green)}
-.chart{display:flex;align-items:end;gap:7px;height:190px;padding:18px 4px 0;overflow-x:auto}.barWrap{min-width:25px;height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:4px}.bar{width:23px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#827cff,var(--p));min-height:3px}.barLabel{font-size:10px;color:var(--muted)}.barValue{font-size:9px;color:var(--muted)}
+.chart{height:210px;padding:18px 4px 0;overflow-x:auto;overflow-y:hidden}.chartTrack{height:100%;display:flex;align-items:end;gap:8px;min-width:100%;width:max-content}.barWrap{flex:0 0 38px;height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:4px}.bar{width:23px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#827cff,var(--p));min-height:3px}.barLabel{font-size:10px;color:var(--muted)}.barValue{font-size:9px;color:var(--muted)}
 .compare{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f7f8fc;border-radius:14px;padding:16px}.compare strong{font-size:23px}.pill{display:inline-block;padding:6px 10px;border-radius:20px;background:#eef1f6;font-size:12px;font-weight:700}.pill.green{background:#eaf9f1;color:var(--green)}.pill.red{background:#fff0f1;color:var(--red)}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;border-bottom:1px solid #edf0f4;text-align:right;white-space:nowrap}th{color:var(--muted)}.tableWrap{overflow:auto}.empty{text-align:center;color:#8b94a4;padding:24px}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.calHead{font-size:11px;color:var(--muted);text-align:center;padding:5px}.calDay{min-height:54px;border:1px solid var(--line);border-radius:10px;padding:7px;background:#fff}.calDay.work{border-color:#bcb8ff;background:#f3f2ff}.calDay strong{font-size:12px}.calDay small{display:block;color:var(--muted);font-size:10px;margin-top:5px}.calDay.good{box-shadow:inset 0 -3px 0 var(--green)}
 .goal{background:#f7f8fc;border-radius:14px;padding:15px}.progress{height:10px;border-radius:10px;background:#e7eaf1;overflow:hidden;margin:10px 0}.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--p),#8a84ff);border-radius:10px}
 .alerts{display:grid;gap:8px}.alert{padding:11px 13px;border-radius:12px;background:#fff8e8;color:#7b5a00;font-size:13px}.alert.info{background:#eef7ff;color:#075b9e}.alert.ok{background:#edf9f3;color:#087344}
 .modal{position:fixed;inset:0;background:#11182777;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.modal.show{display:flex}.modalBox{width:min(560px,100%);background:#fff;border-radius:20px;padding:21px;box-shadow:0 30px 80px #11182744}.modalHead{display:flex;justify-content:space-between;align-items:center}.x{border:0;background:#eef1f6;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:18px}.report{line-height:1.7}.report h3{margin-top:17px}.reportRow{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0}.footer{margin-top:18px;color:var(--muted);font-size:11px;text-align:center}
-@media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.top{align-items:stretch;flex-direction:column}.topActions{flex-wrap:wrap}.grid{grid-template-columns:1fr}.full{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}.fields{grid-template-columns:1fr}}@media(max-width:480px){.stats{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.brand h1{font-size:25px}}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.dailyInputs{grid-template-columns:1fr 1fr}.dailySave{grid-column:1/-1}.dailyQuick h2{font-size:20px}.top{align-items:stretch;flex-direction:column}.topActions{flex-wrap:wrap}.grid{grid-template-columns:1fr}.full{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}.fields{grid-template-columns:1fr}}@media(max-width:480px){.stats{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.brand h1{font-size:25px}}
 </style>
 </head>
 <body>
@@ -38,6 +39,30 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <input id="importFile" type="file" accept=".json" hidden onchange="importData(event)">
     </div>
   </div>
+
+    <section class="card dailyQuick full">
+      <div class="dailyTop">
+        <div>
+          <span class="dailyKicker">⚡ تسجيل سريع</span>
+          <h2>📦 يومية اليوم</h2>
+          <div id="quickDateLabel" class="dailyDate"></div>
+        </div>
+        <button class="btn light smallBtn" onclick="pickAnotherDay()">📅 يوم آخر</button>
+      </div>
+      <div class="dailyInputs">
+        <div class="parcelInput">
+          <label>عدد الطرود</label>
+          <input id="dayParcels" type="number" min="0" step="1" inputmode="numeric" placeholder="0" onkeydown="if(event.key==='Enter')saveDay()">
+        </div>
+        <div>
+          <label>المسافة (كم)</label>
+          <input id="dayDistance" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+        </div>
+        <input id="dayDate" type="date" hidden>
+        <button class="btn primary dailySave" onclick="saveDay()">✅ تسجيل اليومية</button>
+      </div>
+      <div id="quickLast" class="quickLast"></div>
+    </section>
 
   <div class="stats">
     <div class="stat primary"><small>📦 طرود الشهر</small><strong id="sParcels">0</strong></div>
@@ -73,7 +98,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
     <section class="card full">
       <h2>📈 أداء آخر 30 يوم</h2>
       <div id="dailyChart" class="chart"></div>
-      <p class="note">الأعمدة تمثل عدد الطرود المسجلة لكل يوم.</p>
+      <p class="note">الأعمدة تمثل عدد الطرود لكل يوم. إذا زادت الأيام عن عرض الشاشة، اسحب الرسم يمينًا ويسارًا.</p>
     </section>
 
     <section class="card">
@@ -86,15 +111,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div id="alerts" class="alerts"></div>
     </section>
 
-    <section class="card">
-      <h2>➕ إضافة يومية</h2>
-      <div class="fields">
-        <div><label>التاريخ</label><input id="dayDate" type="date"></div>
-        <div><label>عدد الطرود</label><input id="dayParcels" type="number" min="0" step="1"></div>
-        <div><label>المسافة (كم)</label><input id="dayDistance" type="number" min="0" step="0.1"></div>
-      </div>
-      <button class="btn primary wide" onclick="saveDay()">حفظ اليومية</button>
-    </section>
+
 
     <section class="card">
       <h2>⛽ تعبئة البنزين</h2>
@@ -152,15 +169,20 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
     </section>
 
     <section class="card full">
-      <h2>🚗 السيارة والصيانة</h2>
-      <div class="fields">
-        <div><label>عداد السيارة الحالي</label><input id="carOdo" type="number" min="0" step="1"></div>
-        <div><label>الفاصل بين تغييرات الزيت (كم)</label><input id="oilInterval" type="number" min="1" step="500" value="10000"></div>
-        <div><label>آخر تغيير زيت عند (كم)</label><input id="lastOil" type="number" min="0" step="1"></div>
-        <div><label>التنبيه قبل (كم)</label><input id="oilAlert" type="number" min="0" step="1000" value="1000"></div>
+      <h2>🚗 السيارة وتغيير الزيت</h2>
+      <div class="summary">
+        <div class="mini"><span>🛢️ المتبقي للزيت</span><b id="oilRemaining">—</b></div>
+        <div class="mini"><span>🎯 فاصل التغيير</span><b id="oilIntervalView">10,000 كم</b></div>
+        <div class="mini"><span>🚗 المسافة المسجلة</span><b id="oilDriven">0 كم</b></div>
       </div>
-      <button class="btn primary wide" onclick="saveCar()">حفظ بيانات السيارة</button>
+      <div class="fields" style="margin-top:12px">
+        <div><label>المتبقي حاليًا حتى تغيير الزيت (كم)</label><input id="oilRemainingInput" type="number" min="0" step="1" placeholder="مثلاً 10000"></div>
+        <div><label>فاصل تغيير الزيت (كم)</label><input id="oilInterval" type="number" min="1" step="500" value="10000"></div>
+      </div>
+      <button class="btn primary wide" onclick="saveOilSettings()">حفظ إعدادات الزيت</button>
+      <button class="btn green wide" onclick="oilChanged()">🛢️ تم تغيير الزيت الآن</button>
       <div id="maintenance" class="panel"></div>
+      <p class="note">كل مسافة تسجلها في اليومية تُخصم تلقائيًا من المتبقي. لا تحتاج لإدخال عداد السيارة كل يوم.</p>
     </section>
 
     <section class="card full">
@@ -186,7 +208,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V7 • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V10 • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -216,37 +238,170 @@ function monthCalc(m){
 }
 function previousMonth(m){let d=new Date(m+"-01T12:00:00");d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)}
 function workNet(m){return monthCalc(m).workNet}
-function saveDay(){let x={id:uid(),date:$("dayDate").value,parcels:+$("dayParcels").value||0,distance:+$("dayDistance").value||0};if(!x.date||(!x.parcels&&!x.distance))return alert("أدخل التاريخ والطرود أو المسافة.");let a=get("days"),i=a.findIndex(v=>v.date===x.date);if(i>=0){x.id=a[i].id;a[i]=x}else a.push(x);set("days",a);render();$("dayParcels").value="";$("dayDistance").value=""}
+function quickDateLabel(){
+  const d=new Date($("dayDate").value+"T12:00:00");
+  if(Number.isNaN(d.getTime()))return "";
+  return new Intl.DateTimeFormat("ar-FR",{weekday:"long",day:"numeric",month:"long"}).format(d);
+}
+function updateQuickEntry(){
+  $("quickDateLabel").textContent=quickDateLabel();
+  const date=$("dayDate").value, x=get("days").find(v=>v.date===date);
+  $("quickLast").textContent=x?`✏️ لديك تسجيل لهذا اليوم: ${x.parcels} طرد • ${Number(x.distance).toFixed(1)} كم — إذا حفظت الآن سيتم تحديثه.`:"جاهز للتسجيل. بعد الحفظ سيظهر آخر تسجيل هنا.";
+}
+function pickAnotherDay(){
+  const current=$("dayDate").value;
+  openModal("📅 اختيار يوم آخر",`<label>اختر التاريخ</label><input id="otherDay" type="date" value="${current}"><button class="btn primary wide" onclick="setAnotherDay()">متابعة</button>`);
+}
+function setAnotherDay(){
+  const d=$("otherDay").value;if(!d)return;
+  $("dayDate").value=d;closeModal();updateQuickEntry();$("dayParcels").focus();
+}
+function saveDay(){
+  const date=$("dayDate").value,parcels=Math.max(0,+$("dayParcels").value||0),distance=Math.max(0,+$("dayDistance").value||0);
+  if(!date||(!parcels&&!distance))return alert("أدخل عدد الطرود أو المسافة.");
+  let a=get("days"),i=a.findIndex(v=>v.date===date),oldDistance=0,id=uid();
+  if(i>=0){oldDistance=Number(a[i].distance)||0;id=a[i].id}
+  const x={id,date,parcels,distance,income:parcels*PRICE};
+  if(i>=0)a[i]=x;else a.push(x);
+  set("days",a);
+  const delta=distance-oldDistance;
+  if(delta!==0)updateOilFromDistance(delta);
+  render();$("dayParcels").value="";$("dayDistance").value="";updateQuickEntry();$("dayParcels").focus();
+}
 function saveFuel(){let x={id:uid(),date:$("fuelDate").value,price:+$("fuelPrice").value||0,liters:+$("fuelLiters").value||0,odo:+$("fuelOdo").value||0};if(!x.date||!x.price||!x.liters||!x.odo)return alert("أكمل بيانات التعبئة.");let a=get("fuels");a.push(x);set("fuels",a);render();["fuelPrice","fuelLiters","fuelOdo"].forEach(id=>$(id).value="")}
 function saveExpense(){let x={id:uid(),date:$("expDate").value,amount:+$("expAmount").value||0,note:$("expNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("expenses");a.push(x);set("expenses",a);render();$("expAmount").value="";$("expNote").value=""}
 function savePersonal(){let x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("personal");a.push(x);set("personal",a);render();$("personalAmount").value="";$("personalNote").value=""}
-function remove(key,id){if(!confirm("هل تريد حذف هذه المعلومة؟"))return;set(key,get(key).filter(x=>String(x.id)!==String(id)));render()}
+function remove(key,id){
+  if(!confirm("هل تريد حذف هذه المعلومة؟"))return;
+  const arr=get(key), item=arr.find(x=>String(x.id)===String(id));
+  if(!item)return;
+
+  // إذا حذفنا يومية، نعيد مسافتها إلى عداد الزيت حتى لا تختفي المسافة
+  // من السجل ويبقى عداد الزيت ناقصًا بشكل خاطئ.
+  if(key==="days" && Number(item.distance)>0){
+    updateOilFromDistance(-Number(item.distance));
+  }
+
+  set(key,arr.filter(x=>String(x.id)!==String(id)));
+  render();
+}
 function openModal(t,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=b;$("modal").classList.add("show")}function closeModal(){$("modal").classList.remove("show")}
 function editDay(id){let x=get("days").find(v=>v.id===id);if(!x)return;openModal("تعديل اليومية",`<div class="fields"><div><label>التاريخ</label><input id="e1" type="date" value="${x.date}"></div><div><label>الطرود</label><input id="e2" type="number" value="${x.parcels}"></div><div><label>المسافة</label><input id="e3" type="number" step=".1" value="${x.distance}"></div></div><button class="btn primary wide" onclick="updDay('${id}')">حفظ</button>`)}
-function updDay(id){let a=get("days"),x=a.find(v=>v.id===id);x.date=$("e1").value;x.parcels=+$("e2").value||0;x.distance=+$("e3").value||0;set("days",a);closeModal();render()}
+function updDay(id){
+  let a=get("days"),x=a.find(v=>v.id===id);if(!x)return;
+  const oldDistance=Number(x.distance)||0;
+  const newDate=$("e1").value;
+  const duplicate=a.find(v=>v.date===newDate && String(v.id)!==String(id));
+  if(duplicate){
+    alert("يوجد تسجيل يومي لهذا التاريخ بالفعل. اختر تاريخًا آخر أو عدّل التسجيل الموجود.");
+    return;
+  }
+  x.date=newDate;x.parcels=+$("e2").value||0;x.distance=+$("e3").value||0;
+  set("days",a);
+  const delta=x.distance-oldDistance;if(delta)updateOilFromDistance(delta);
+  closeModal();render();
+}
 function editFuel(id){let x=get("fuels").find(v=>v.id===id);if(!x)return;openModal("تعديل البنزين",`<div class="fields"><div><label>التاريخ</label><input id="f1" type="date" value="${x.date}"></div><div><label>السعر</label><input id="f2" type="number" step=".001" value="${x.price}"></div><div><label>اللترات</label><input id="f3" type="number" step=".01" value="${x.liters}"></div><div><label>العداد</label><input id="f4" type="number" value="${x.odo}"></div></div><button class="btn primary wide" onclick="updFuel('${id}')">حفظ</button>`)}
 function updFuel(id){let a=get("fuels"),x=a.find(v=>v.id===id);x.date=$("f1").value;x.price=+$("f2").value||0;x.liters=+$("f3").value||0;x.odo=+$("f4").value||0;set("fuels",a);closeModal();render()}
 function editExpense(id){let x=get("expenses").find(v=>v.id===id);if(!x)return;openModal("تعديل مصروف العمل",`<div class="fields"><div><label>التاريخ</label><input id="x1" type="date" value="${x.date}"></div><div><label>المبلغ</label><input id="x2" type="number" step=".01" value="${x.amount}"></div><div style="grid-column:1/-1"><label>الوصف</label><input id="x3" value="${x.note||""}"></div></div><button class="btn primary wide" onclick="updExp('${id}')">حفظ</button>`)}
 function updExp(id){let a=get("expenses"),x=a.find(v=>v.id===id);x.date=$("x1").value;x.amount=+$("x2").value||0;x.note=$("x3").value;set("expenses",a);closeModal();render()}
 function editPersonal(id){let x=get("personal").find(v=>v.id===id);if(!x)return;openModal("تعديل المصروف الشخصي",`<div class="fields"><div><label>التاريخ</label><input id="p1" type="date" value="${x.date}"></div><div><label>المبلغ</label><input id="p2" type="number" step=".01" value="${x.amount}"></div><div style="grid-column:1/-1"><label>الوصف</label><input id="p3" value="${x.note||""}"></div></div><button class="btn primary wide" onclick="updPersonal('${id}')">حفظ</button>`)}
 function updPersonal(id){let a=get("personal"),x=a.find(v=>v.id===id);x.date=$("p1").value;x.amount=+$("p2").value||0;x.note=$("p3").value;set("personal",a);closeModal();render()}
-function deleteMonth(){let m=$("month").value;if(!m)return;if(!confirm("⚠️ سيتم حذف كل بيانات هذا الشهر: اليومية والبنزين ومصاريف العمل والمصاريف الشخصية. لا يمكن التراجع. هل أنت متأكد؟"))return;for(const k of["days","fuels","expenses","personal"])set(k,get(k).filter(x=>!x.date.startsWith(m)));render()}
+function deleteMonth(){
+  let m=$("month").value;if(!m)return;
+  if(!confirm("⚠️ سيتم حذف كل بيانات هذا الشهر: اليومية والبنزين ومصاريف العمل والمصاريف الشخصية. لا يمكن التراجع. هل أنت متأكد؟"))return;
+
+  // عند حذف شهر كامل، نرجع مسافات أيامه إلى عداد الزيت.
+  const removedDistance=get("days")
+    .filter(x=>x.date.startsWith(m))
+    .reduce((s,x)=>s+(Number(x.distance)||0),0);
+  if(removedDistance)updateOilFromDistance(-removedDistance);
+
+  for(const k of["days","fuels","expenses","personal"])
+    set(k,get(k).filter(x=>!x.date.startsWith(m)));
+  render();
+}
 function simulateMonth(){const c=monthCalc($("month").value);openModal("✨ محاكاة نهاية الشهر",`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 مصاريف شخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><p class="note">المحاكاة لا تغلق الشهر ولا تغير البيانات.</p></div>`)}
 function editGoal(){let g=+localStorage.getItem("goal")||0;openModal("🎯 هدف صافي ربح العمل",`<label>الهدف الشهري (€)</label><input id="goalInput" type="number" min="0" step="100" value="${g}"><button class="btn primary wide" onclick="saveGoal()">حفظ الهدف</button>`)}
 function saveGoal(){localStorage.setItem("goal",String(+$("goalInput").value||0));closeModal();render()}
-function saveCar(){localStorage.setItem("car",JSON.stringify({odo:+$("carOdo").value||0,interval:+$("oilInterval").value||10000,lastOil:+$("lastOil").value||0,alert:+$("oilAlert").value||1000}));render()}
-function maintenance(){let c=JSON.parse(localStorage.getItem("car")||"{}"),box=$("maintenance");if(!c.odo||!c.lastOil){box.innerHTML="أدخل عداد السيارة وآخر تغيير زيت لبدء التنبيه.";return}let next=c.lastOil+(c.interval||10000),left=next-c.odo;box.innerHTML=left<=0?`<div class="alert" style="background:#fff0f1;color:#9b1c2a">🛢️ موعد تغيير الزيت حان أو تجاوزته بـ ${Math.abs(left).toLocaleString()} كم.</div>`:left<=(c.alert||1000)?`<div class="alert">🛢️ اقترب تغيير الزيت — باقي ${left.toLocaleString()} كم.</div>`:`<div class="alert ok">🛢️ الزيت تمام — باقي ${left.toLocaleString()} كم.</div>`}
+function getOil(){
+  try{return JSON.parse(localStorage.getItem("oil")||"null")||{remaining:10000,interval:10000,driven:0}}
+  catch(e){return{remaining:10000,interval:10000,driven:0}}
+}
+function saveOilSettings(){
+  const old=getOil();
+  const interval=+$("oilInterval").value||10000;
+  const remaining=Math.max(0,+$("oilRemainingInput").value||0);
+  set("oil",{remaining,interval,driven:old.driven||0});
+  render();
+}
+function oilChanged(){
+  const o=getOil(), interval=+$("oilInterval").value||o.interval||10000;
+  if(!confirm(`تأكيد تغيير الزيت؟\\nسيتم إعادة العداد إلى ${interval.toLocaleString()} كم.`))return;
+  set("oil",{remaining:interval,interval,driven:0});
+  render();
+}
+function updateOilFromDistance(distance){
+  const o=getOil(), d=Math.max(0,Number(distance)||0);
+  if(!d)return;
+  o.remaining=Math.max(0,(Number(o.remaining)||0)-d);
+  o.driven=(Number(o.driven)||0)+d;
+  set("oil",o);
+}
+function oilStatus(){
+  const o=getOil(),r=Number(o.remaining)||0;
+  if(r<=0)return `<div class="alert" style="background:#fff0f1;color:#9b1c2a">🛢️ حان موعد تغيير الزيت. لقد وصلت إلى موعد الصيانة.</div>`;
+  if(r<=1000)return `<div class="alert">🛢️ اقترب تغيير الزيت — باقي ${r.toLocaleString()} كم فقط.</div>`;
+  return `<div class="alert ok">🛢️ الزيت تمام — باقي ${r.toLocaleString()} كم.</div>`;
+}
+function maintenance(){
+  const o=getOil();
+  $("oilRemaining").textContent=(Number(o.remaining)||0).toLocaleString()+" كم";
+  $("oilIntervalView").textContent=(Number(o.interval)||10000).toLocaleString()+" كم";
+  $("oilDriven").textContent=(Number(o.driven)||0).toLocaleString()+" كم";
+  $("oilRemainingInput").value=Number(o.remaining)||0;
+  $("oilInterval").value=Number(o.interval)||10000;
+  $("maintenance").innerHTML=oilStatus();
+}
 function renderComparison(){let m=$("month").value,n=workNet(m),o=workNet(previousMonth(m)),el=$("comparison");el.className="";if(n===null||o===null){el.textContent="—";return}let d=n-o;el.textContent=d>0?"📈 +"+euro(d):d<0?"📉 "+euro(d):"➖ 0.00 €";el.className=d>0?"up":d<0?"down":""}
-function renderChart(days){let max=Math.max(1,...days.map(x=>+x.parcels||0));$("dailyChart").innerHTML=days.slice(-30).map(x=>`<div class="barWrap" title="${x.date}: ${x.parcels} طرد"><div class="barValue">${x.parcels}</div><div class="bar" style="height:${Math.max(3,(x.parcels/max)*145)}px"></div><div class="barLabel">${x.date.slice(8)}</div></div>`).join("")||'<div class="empty">لا توجد بيانات كافية.</div>'}
-function renderCalendar(m,days){let d=new Date(m+"-01T12:00:00"),year=d.getFullYear(),month=d.getMonth(),first=new Date(year,month,1).getDay();first=(first+6)%7;let total=new Date(year,month+1,0).getDate(),map=Object.fromEntries(days.map(x=>[+x.date.slice(8),x]));let s=["الإث","الث","الأر","الخ","الجم","السب","الأحد"].map(x=>`<div class="calHead">${x}</div>`).join("");for(let i=0;i<first;i++)s+="<div></div>";for(let n=1;n<=total;n++){let x=map[n];s+=`<div class="calDay ${x?"work":""} ${x&&x.parcels>300?"good":""}"><strong>${n}</strong>${x?`<small>📦 ${x.parcels}</small><small>${Number(x.distance).toFixed(0)} كم</small>`:""}</div>`}$("calendar").innerHTML=`<div class="calendar">${s}</div>`}
-function renderAlerts(m){let a=[];let c=JSON.parse(localStorage.getItem("car")||"{}");if(c.odo&&c.lastOil){let left=c.lastOil+(c.interval||10000)-c.odo;if(left<=c.alert)a.push({t:left<=0?"🛢️ تغيير الزيت مستحق.":"🛢️ تغيير الزيت قريب.",c:""})}if(!m.days.length)a.push({t:"📅 لم تسجل أي يوم في هذا الشهر بعد.",c:"info"});if(m.days.length&&m.days.length<10)a.push({t:"📊 اجمع بيانات أكثر لتحصل على تقديرات أدق.",c:"info"});$("alerts").innerHTML=a.length?a.map(x=>`<div class="alert ${x.c}">${x.t}</div>`).join(""):'<div class="alert ok">✅ لا توجد تنبيهات مهمة الآن.</div>'}
+function renderChart(days){
+  const list=[...days]
+    .filter(x=>x&&x.date)
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .slice(-30);
+  if(!list.length){
+    $("dailyChart").innerHTML='<div class="empty">لا توجد بيانات لهذا الشهر.</div>';
+    return;
+  }
+  const max=Math.max(1,...list.map(x=>Number(x.parcels)||0));
+  const bars=list.map(x=>{
+    const value=Number(x.parcels)||0;
+    const height=Math.max(8,Math.round(value/max*145));
+    return `<div class="barWrap" title="${x.date}: ${value} طرد">
+      <div class="barValue">${value}</div>
+      <div class="bar" style="height:${height}px"></div>
+      <div class="barLabel">${x.date.slice(8)}</div>
+    </div>`;
+  }).join("");
+  $("dailyChart").innerHTML=`<div class="chartTrack">${bars}</div>`;
+}function renderCalendar(m,days){let d=new Date(m+"-01T12:00:00"),year=d.getFullYear(),month=d.getMonth(),first=new Date(year,month,1).getDay();first=(first+6)%7;let total=new Date(year,month+1,0).getDate(),map=Object.fromEntries(days.map(x=>[+x.date.slice(8),x]));let s=["الإث","الث","الأر","الخ","الجم","السب","الأحد"].map(x=>`<div class="calHead">${x}</div>`).join("");for(let i=0;i<first;i++)s+="<div></div>";for(let n=1;n<=total;n++){let x=map[n];s+=`<div class="calDay ${x?"work":""} ${x&&x.parcels>300?"good":""}"><strong>${n}</strong>${x?`<small>📦 ${x.parcels}</small><small>${Number(x.distance).toFixed(0)} كم</small>`:""}</div>`}$("calendar").innerHTML=`<div class="calendar">${s}</div>`}
+function renderAlerts(m){
+  let a=[];
+  const o=getOil();
+  const left=Number(o.remaining)||0;
+  if(left<=0)a.push({t:"🛢️ تغيير الزيت مستحق.",c:""});
+  else if(left<=1000)a.push({t:`🛢️ اقترب تغيير الزيت — باقي ${left.toLocaleString()} كم.`,c:""});
+  if(!m.days.length)a.push({t:"📅 لم تسجل أي يوم في هذا الشهر بعد.",c:"info"});
+  if(m.days.length&&m.days.length<10)a.push({t:"📊 اجمع بيانات أكثر لتحصل على تقديرات أدق.",c:"info"});
+  $("alerts").innerHTML=a.length?a.map(x=>`<div class="alert ${x.c}">${x.t}</div>`).join(""):'<div class="alert ok">✅ لا توجد تنبيهات مهمة الآن.</div>';
+}
 function renderGoal(c){let g=+localStorage.getItem("goal")||0,net=c.workNet||0,p=g?Math.min(100,net/g*100):0;$("goalText").textContent=g?`${euro(net)} / ${euro(g)}`:"لم تحدد هدفًا";$("goalPercent").textContent=g?Math.round(p)+"%":"—";$("goalBar").style.width=p+"%"}
 function render(){
   const m=$("month").value,c=monthCalc(m);
   $("sParcels").textContent=c.parcels;$("sIncome").textContent=euro(c.income);$("sWorkNet").textContent=c.workNet===null?"—":euro(c.workNet);$("sPersonal").textContent=euro(c.personal);$("sFinal").textContent=c.final===null?"—":euro(c.final);
   $("avgParcels").textContent=c.days.length?(c.parcels/c.days.length).toFixed(0):"0";$("avgIncome").textContent=c.days.length?euro(c.income/c.days.length):"0.00 €";$("totalKm").textContent=c.km.toFixed(0)+" كم";$("fuelCost").textContent=c.fuel===null?"—":euro(c.fuel);$("profitPerParcel").textContent=c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"—";
   $("mIncome").textContent=euro(c.income);$("mFuel").textContent=c.fuel===null?"—":euro(c.fuel);$("mInsurance").textContent=euro(INSURANCE);$("mExpenses").textContent=euro(c.side);$("mWorkNet").textContent=c.workNet===null?"—":euro(c.workNet);$("mPersonal").textContent=euro(c.personal);$("mFinal").textContent=c.final===null?"—":euro(c.final);
-  renderComparison();renderChart(get("days").filter(x=>x.date<=today()).sort((a,b)=>a.date.localeCompare(b.date)));renderCalendar(m,c.days);renderAlerts(c);renderGoal(c);maintenance();
+  renderComparison();renderChart(c.days);renderCalendar(m,c.days);renderAlerts(c);renderGoal(c);maintenance();
   $("days").innerHTML=c.days.length?c.days.map(x=>`<tr><td>${x.date}</td><td>${x.parcels}</td><td>${Number(x.distance).toFixed(1)} كم</td><td>${euro(x.parcels*PRICE)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editDay('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('days','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="5" class="empty">لا توجد يوميات لهذا الشهر.</td></tr>';
   $("fuels").innerHTML=c.fuels.length?c.fuels.map(x=>`<tr><td>${x.date}</td><td>${Number(x.price).toFixed(3)} €</td><td>${Number(x.liters).toFixed(2)} L</td><td>${Number(x.odo).toLocaleString()}</td><td>${euro(x.price*x.liters)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editFuel('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('fuels','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty">لا توجد تعبئات لهذا الشهر.</td></tr>';
   $("expenses").innerHTML=c.expenses.length?c.expenses.map(x=>`<tr><td>${x.date}</td><td>${x.note||"—"}</td><td>${euro(x.amount)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editExpense('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('expenses','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="4" class="empty">لا توجد مصاريف لهذا الشهر.</td></tr>';
@@ -254,13 +409,33 @@ function render(){
 }
 function openReport(){let c=monthCalc($("month").value),m=$("month").value;openModal("📑 تقرير "+m,`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 المصاريف الشخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي النهائي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><h3>💡 الربح التقريبي لكل طرد</h3><div class="reportRow"><span>صافي ربح العمل ÷ عدد الطرود</span><b>${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}</b></div></div>`)}
 function exportReport(){let c=monthCalc($("month").value),txt=`Delivery Desk - ${$("month").value}\n\nالطرود: ${c.parcels}\nالدخل: ${euro(c.income)}\nالبنزين: ${c.fuel===null?"غير متاح":euro(c.fuel)}\nالتأمين: ${euro(INSURANCE)}\nمصاريف العمل: ${euro(c.side)}\nصافي ربح العمل: ${c.workNet===null?"غير متاح":euro(c.workNet)}\nالمصاريف الشخصية: ${euro(c.personal)}\nالمتبقي النهائي: ${c.final===null?"غير متاح":euro(c.final)}\nربح الطرد: ${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}`;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));a.download=`delivery-report-${$("month").value}.txt`;a.click()}
-function exportData(){let data={days:get("days"),fuels:get("fuels"),expenses:get("expenses"),personal:get("personal"),goal:localStorage.getItem("goal"),car:localStorage.getItem("car")};let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="delivery-backup.json";a.click()}
-function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);for(const k of["days","fuels","expenses","personal"])if(Array.isArray(d[k]))set(k,d[k].map(x=>({...x,id:x.id||uid()})));if(d.goal!=null)localStorage.setItem("goal",d.goal);if(d.car)localStorage.setItem("car",d.car);render();alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
+function exportData(){let data={version:10,days:get("days"),fuels:get("fuels"),expenses:get("expenses"),personal:get("personal"),goal:localStorage.getItem("goal"),oil:getOil()};let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="delivery-backup.json";a.click()}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);for(const k of["days","fuels","expenses","personal"])if(Array.isArray(d[k]))set(k,d[k].map(x=>({...x,id:x.id||uid()})));if(d.goal!=null)localStorage.setItem("goal",d.goal);
+    if(d.oil&&typeof d.oil==="object"){
+      const oil={remaining:Math.max(0,Number(d.oil.remaining)||0),interval:Math.max(1,Number(d.oil.interval)||10000),driven:Math.max(0,Number(d.oil.driven)||0)};
+      localStorage.setItem("oil",JSON.stringify(oil));
+    }
+    render();alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
 function migrate(){for(const k of["days","fuels","expenses","personal"]){let a=get(k),changed=false;a=a.map(x=>{if(!x.id){x.id=uid();changed=true}return x});if(changed)set(k,a)}}
+if(!localStorage.getItem("oil")){
+  const legacy=JSON.parse(localStorage.getItem("car")||"{}");
+  const interval=Math.max(1,Number(legacy.interval)||10000);
+  const last=Number(legacy.lastOil)||0;
+  const odo=Number(legacy.odo)||0;
+  const remaining=last&&odo?Math.max(0,last+interval-odo):interval;
+  localStorage.setItem("oil",JSON.stringify({remaining,interval,driven:0}));
+} else {
+  const o=getOil();
+  localStorage.setItem("oil",JSON.stringify({
+    remaining:Math.max(0,Number(o.remaining)||0),
+    interval:Math.max(1,Number(o.interval)||10000),
+    driven:Math.max(0,Number(o.driven)||0)
+  }));
+}
 $("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();
-$("month").addEventListener("change",render);$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
-(function loadCar(){let c=JSON.parse(localStorage.getItem("car")||"{}");$("carOdo").value=c.odo||"";$("oilInterval").value=c.interval||10000;$("lastOil").value=c.lastOil||"";$("oilAlert").value=c.alert||1000})();
-render();
+$("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
+(function initOilUI(){const o=getOil();$("oilRemainingInput").value=Number(o.remaining)||0;$("oilInterval").value=Number(o.interval)||10000})();
+render();updateQuickEntry();
 if("serviceWorker"in navigator && location.protocol!=="file:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
