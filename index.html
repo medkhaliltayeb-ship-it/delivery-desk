@@ -11,6 +11,7 @@
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8f9fc,#eef2f8);color:var(--ink);font-family:Arial,"Segoe UI",Tahoma,sans-serif}
 .app{max-width:1250px;margin:auto;padding:22px 16px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px}.brand h1{margin:0;font-size:31px}.brand p{margin:6px 0 0;color:var(--muted)}
 .topActions{display:flex;gap:8px;align-items:end}.monthPick{width:170px}
+.syncHeader{display:flex;justify-content:space-between;align-items:center;gap:16px}.authForm{display:grid;gap:10px}.authForm input{height:45px}@media(max-width:760px){.syncHeader{align-items:stretch;flex-direction:column}}
 .dailyQuick{background:linear-gradient(135deg,#ffffff 0%,#f5f4ff 100%);border-color:#dcd9ff;box-shadow:0 16px 38px rgba(99,91,255,.10);margin-bottom:16px}.dailyTop{display:flex;justify-content:space-between;align-items:center;gap:12px}.dailyKicker{font-size:11px;font-weight:800;color:var(--p);background:#ebe9ff;border-radius:20px;padding:6px 10px}.dailyQuick h2{font-size:22px;margin:11px 0 3px}.dailyDate{font-size:13px;color:var(--muted)}.dailyInputs{display:grid;grid-template-columns:1.4fr .8fr auto;gap:12px;align-items:end;margin-top:17px}.dailyInputs input{height:48px}.parcelInput input{font-size:23px;font-weight:800}.dailySave{height:48px;margin:0;white-space:nowrap}.quickLast{margin-top:12px;padding-top:11px;border-top:1px solid #e5e2ff;font-size:12px;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:20px;box-shadow:var(--shadow)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.full{grid-column:1/-1}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:16px}.stat{padding:18px;border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.stat.primary{background:linear-gradient(135deg,var(--p),#827cff);color:#fff;border:0}.stat small{display:block;color:var(--muted);font-weight:700}.stat.primary small{color:#fff9}.stat strong{display:block;font-size:26px;margin-top:8px}.up{color:var(--green)!important}.down{color:var(--red)!important}
@@ -63,6 +64,14 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       </div>
       <div id="quickLast" class="quickLast"></div>
     </section>
+
+  <section class="card full" id="authCard" style="margin-bottom:16px;background:linear-gradient(135deg,#fff,#f3f2ff);border-color:#dcd9ff">
+    <div class="syncHeader" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div><span class="dailyKicker">☁️ المزامنة</span><h2 style="margin:10px 0 4px">بياناتك على أجهزتك</h2>
+      <p class="note" id="syncStatus">غير مسجل الدخول — البيانات محفوظة على هذا الجهاز.</p></div>
+      <div id="authActions"></div>
+    </div>
+  </section>
 
   <div class="stats">
     <div class="stat primary"><small>📦 طرود الشهر</small><strong id="sParcels">0</strong></div>
@@ -208,18 +217,47 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V10 • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11 • المزامنة + نسخ سحابي • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
-<div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
+<div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
 
 <script>
 const PRICE=1.40,INSURANCE=140;
 const $=id=>document.getElementById(id),today=()=>new Date().toISOString().slice(0,10),euro=n=>Number(n||0).toFixed(2)+" €";
 const get=k=>{try{let v=JSON.parse(localStorage.getItem(k)||"[]");return Array.isArray(v)?v:[]}catch(e){return[]}};
-const set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const set=(k,v)=>{localStorage.setItem(k,JSON.stringify(v));if(["days","fuels","expenses","personal"].includes(k))queueCloudSync();};
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random();
 function toggle(id){$(id).classList.toggle("hidden")}
+const SB_URL="https://lhqdzsgombcxsjtyveja.supabase.co";
+const SB_KEY="sb_publishable_G1TxarialH3XWHri1cgMXQ_oK0VZpax";
+let cloudTimer=null,cloudBusy=false;
+const session=()=>{try{return JSON.parse(localStorage.getItem("dd_session")||"null")}catch(e){return null}};
+const saveSession=s=>localStorage.setItem("dd_session",JSON.stringify(s));
+const clearSession=()=>localStorage.removeItem("dd_session");
+
+async function sb(path,opt={}){
+  const s=session(),headers={"apikey":SB_KEY,"Content-Type":"application/json",...(opt.headers||{})};
+  if(s?.access_token)headers.Authorization="Bearer "+s.access_token;
+  const r=await fetch(SB_URL+path,{...opt,headers});
+  const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch(e){data=text}
+  if(!r.ok)throw new Error(data?.msg||data?.message||data?.error_description||data?.error||text||("HTTP "+r.status));
+  return data;
+}
+function syncStatus(t,ok=false){const e=$("syncStatus");if(e){e.textContent=t;e.style.color=ok?"var(--green)":"var(--muted)"}}
+function openAuth(){$("authModal").classList.add("show")}
+function closeAuth(){$("authModal").classList.remove("show")}
+function renderAuth(){const s=session(),a=$("authActions");if(!a)return;if(s?.user){a.innerHTML=`<div class="actions"><span class="pill green">☁️ متصل</span><button class="btn light smallBtn" onclick="syncNow()">مزامنة</button><button class="btn danger smallBtn" onclick="logout()">خروج</button></div>`;syncStatus("متصل: "+(s.user.email||"حسابك"),true)}else{a.innerHTML=`<button class="btn primary" onclick="openAuth()">🔐 تسجيل الدخول للمزامنة</button>`;syncStatus("غير مسجل الدخول — البيانات محفوظة على هذا الجهاز.")}}
+async function authLogin(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||!password)return alert("أدخل البريد وكلمة المرور.");try{const d=await sb("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password})});saveSession({access_token:d.access_token,refresh_token:d.refresh_token,user:d.user});closeAuth();renderAuth();await migrateCloud();render();}catch(e){alert("تعذر تسجيل الدخول: "+e.message)}}
+async function authSignup(){const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||password.length<6)return alert("أدخل بريدًا صحيحًا وكلمة مرور من 6 أحرف على الأقل.");try{const d=await sb("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password})});if(d.access_token){saveSession({access_token:d.access_token,refresh_token:d.refresh_token,user:d.user});closeAuth();renderAuth();await migrateCloud();render()}else alert("تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلًا، أكد البريد ثم سجّل الدخول.")}catch(e){alert("تعذر إنشاء الحساب: "+e.message)}}
+async function logout(){try{await sb("/auth/v1/logout",{method:"POST"})}catch(e){}clearSession();renderAuth();render()}
+async function cloudGet(table){return sb("/rest/v1/"+table+"?select=*")}
+async function cloudUp(table,rows){const s=session();if(!s?.user||!rows.length)return;const payload=rows.map(x=>({...x,user_id:s.user.id}));await sb("/rest/v1/"+table,{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(payload)})}
+async function settingsUp(){const s=session();if(!s?.user)return;const o=getOil();await sb("/rest/v1/settings",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:s.user.id,goal:+localStorage.getItem("goal")||0,oil_remaining:+o.remaining||0,oil_interval:+o.interval||10000,oil_driven:+o.driven||0})})}
+async function pullCloud(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري تحميل البيانات...");const [d,f,e,p,st]=await Promise.all([cloudGet("days"),cloudGet("fuels"),cloudGet("expenses"),cloudGet("personal_expenses"),cloudGet("settings")]);localStorage.setItem("days",JSON.stringify(d.map(x=>({id:x.id,date:x.date,parcels:+x.parcels||0,distance:+x.distance||0})));localStorage.setItem("fuels",JSON.stringify(f.map(x=>({id:x.id,date:x.date,price:+x.price||0,liters:+x.liters||0,odo:+x.odo||0})));localStorage.setItem("expenses",JSON.stringify(e.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""})));localStorage.setItem("personal",JSON.stringify(p.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""})));if(st[0]){localStorage.setItem("goal",String(+st[0].goal||0));localStorage.setItem("oil",JSON.stringify({remaining:+st[0].oil_remaining||0,interval:+st[0].oil_interval||10000,driven:+st[0].oil_driven||0}))}syncStatus("☁️ تمت المزامنة",true);render()}catch(e){syncStatus("⚠️ فشلت المزامنة: "+e.message)}finally{cloudBusy=false}}
+async function migrateCloud(){const s=session();if(!s?.user)return;syncStatus("☁️ جاري رفع بيانات الجهاز...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();await pullCloud()}
+function queueCloudSync(){if(!session()?.user)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(syncNow,900)}
+async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBusy=true;try{syncStatus("☁️ جاري الحفظ...");await cloudUp("days",get("days"));await cloudUp("fuels",get("fuels"));await cloudUp("expenses",get("expenses"));await cloudUp("personal_expenses",get("personal"));await settingsUp();syncStatus("☁️ تمت المزامنة",true)}catch(e){syncStatus("⚠️ لم تكتمل المزامنة: "+e.message)}finally{cloudBusy=false}}
 function monthData(month=$("month").value){return{days:get("days").filter(x=>x.date.startsWith(month)),fuels:get("fuels").filter(x=>x.date.startsWith(month)),expenses:get("expenses").filter(x=>x.date.startsWith(month)),personal:get("personal").filter(x=>x.date.startsWith(month))}}
 function fuelEstimate(){
   const f=get("fuels").filter(x=>x.odo>0&&x.liters>0).sort((a,b)=>a.odo-b.odo);
@@ -323,7 +361,7 @@ function deleteMonth(){
 }
 function simulateMonth(){const c=monthCalc($("month").value);openModal("✨ محاكاة نهاية الشهر",`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 مصاريف شخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><p class="note">المحاكاة لا تغلق الشهر ولا تغير البيانات.</p></div>`)}
 function editGoal(){let g=+localStorage.getItem("goal")||0;openModal("🎯 هدف صافي ربح العمل",`<label>الهدف الشهري (€)</label><input id="goalInput" type="number" min="0" step="100" value="${g}"><button class="btn primary wide" onclick="saveGoal()">حفظ الهدف</button>`)}
-function saveGoal(){localStorage.setItem("goal",String(+$("goalInput").value||0));closeModal();render()}
+function saveGoal(){localStorage.setItem("goal",String(+$("goalInput").value||0));queueCloudSync();closeModal();render()}
 function getOil(){
   try{return JSON.parse(localStorage.getItem("oil")||"null")||{remaining:10000,interval:10000,driven:0}}
   catch(e){return{remaining:10000,interval:10000,driven:0}}
@@ -346,7 +384,7 @@ function updateOilFromDistance(distance){
   if(!d)return;
   o.remaining=Math.max(0,(Number(o.remaining)||0)-d);
   o.driven=(Number(o.driven)||0)+d;
-  set("oil",o);
+  localStorage.setItem("oil",JSON.stringify(o));queueCloudSync();
 }
 function oilStatus(){
   const o=getOil(),r=Number(o.remaining)||0;
@@ -433,10 +471,14 @@ if(!localStorage.getItem("oil")){
   }));
 }
 $("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();
-$("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
+$("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 (function initOilUI(){const o=getOil();$("oilRemainingInput").value=Number(o.remaining)||0;$("oilInterval").value=Number(o.interval)||10000})();
-render();updateQuickEntry();
-if("serviceWorker"in navigator && location.protocol!=="file:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();updateQuickEntry();renderAuth();if(session()?.user)setTimeout(pullCloud,400);
+if("serviceWorker"in navigator && location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw.js?v=10-2",{updateViaCache:"none"})
+    .then(reg=>reg.update())
+    .catch(()=>{});
+}
 </script>
 </body>
 </html>
