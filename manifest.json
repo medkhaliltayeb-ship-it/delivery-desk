@@ -1,0 +1,11 @@
+{
+  "name":"Delivery Desk",
+  "short_name":"Delivery Desk",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f4f6fb",
+  "theme_color":"#635bff",
+  "lang":"ar",
+  "dir":"rtl",
+  "icons":[]
+}
