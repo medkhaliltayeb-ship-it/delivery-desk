@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.3 • المزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.4 • صيانة الزيت • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -424,12 +424,22 @@ function oilChanged(){
   set("oil",{remaining:interval,interval,driven:0});
   render();
 }
-function updateOilFromDistance(distance){
-  const o=getOil(), d=Math.max(0,Number(distance)||0);
-  if(!d)return;
-  o.remaining=Math.max(0,(Number(o.remaining)||0)-d);
-  o.driven=(Number(o.driven)||0)+d;
-  localStorage.setItem("oil",JSON.stringify(o));queueCloudSync();
+function updateOilFromDistance(delta){
+  const o=getOil();
+  const change=Number(delta)||0;
+  if(!change)return;
+
+  const interval=Math.max(1,Number(o.interval)||10000);
+  const driven=Math.max(0,(Number(o.driven)||0)+change);
+
+  // مصدر الحقيقة هو المسافة المقطوعة منذ آخر تغيير زيت.
+  // المتبقي = الفاصل - المسافة المقطوعة.
+  o.interval=interval;
+  o.driven=driven;
+  o.remaining=Math.max(0,interval-driven);
+
+  localStorage.setItem("oil",JSON.stringify(o));
+  queueCloudSync();
 }
 function oilStatus(){
   const o=getOil(),r=Number(o.remaining)||0;
@@ -514,12 +524,6 @@ if(!localStorage.getItem("oil")){
     interval:Math.max(1,Number(o.interval)||10000),
     driven:Math.max(0,Number(o.driven)||0)
   }));
-}
-if(localStorage.getItem("dd_oil_driven_v11_3_reset")!=="1"){
-  const o=getOil();
-  o.driven=0;
-  localStorage.setItem("oil",JSON.stringify(o));
-  localStorage.setItem("dd_oil_driven_v11_3_reset","1");
 }
 $("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();
 $("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
