@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.6 • صيانة الزيت + مزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.7 • مزامنة الأجهزة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -575,15 +575,22 @@ if(!localStorage.getItem("oil")){
     driven:Math.max(0,Number(o.driven)||0)
   }));
 }
+if(localStorage.getItem("dd_oil_sync_v11_7_migrated")!=="1"){
+  // Older builds could leave a stale local dirty flag on one device.
+  // Clear that flag so the current cloud value wins on the first sync.
+  localStorage.removeItem("dd_oil_dirty");
+  localStorage.setItem("dd_oil_sync_v11_7_migrated","1");
+}
 $("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();repairOilState();
 $("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 (function initOilUI(){const o=getOil();$("oilRemainingInput").value=Number(o.remaining)||0;$("oilInterval").value=Number(o.interval)||10000})();
-render();updateQuickEntry();renderAuth();if(session()?.user)setTimeout(pullCloud,400);
+render();updateQuickEntry();renderAuth();
 if("serviceWorker"in navigator && location.protocol!=="file:"){
-  navigator.serviceWorker.register("sw.js?v=10-2",{updateViaCache:"none"})
+  navigator.serviceWorker.register("sw.js?v=11-7",{updateViaCache:"none"})
     .then(reg=>reg.update())
     .catch(()=>{});
 }
+if(session()?.user)setTimeout(()=>pullCloud(),900);
 </script>
 </body>
 </html>
