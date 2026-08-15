@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.4 • صيانة الزيت • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.5 • صيانة الزيت • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -509,6 +509,40 @@ function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader
       localStorage.setItem("oil",JSON.stringify(oil));
     }
     render();alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
+async function repairOilState(){
+  if(localStorage.getItem("dd_oil_repaired_v11_5")==="1")return;
+
+  // V11.5: discard the stale maintenance distance from earlier test builds.
+  // A fresh oil interval starts at zero driven distance.
+  const o=getOil();
+  const interval=Math.max(1,Number(o.interval)||10000);
+  const fresh={remaining:interval,interval,driven:0};
+  localStorage.setItem("oil",JSON.stringify(fresh));
+  localStorage.setItem("dd_oil_repaired_v11_5","1");
+
+  // If the device is already connected, immediately overwrite the old
+  // cloud settings too, so pullCloud cannot restore the stale number.
+  const s=session();
+  if(s?.user){
+    try{
+      await sb("/rest/v1/settings",{method:"POST",
+        headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+        body:JSON.stringify({
+          user_id:s.user.id,
+          goal:+localStorage.getItem("goal")||0,
+          oil_remaining:interval,
+          oil_interval:interval,
+          oil_driven:0
+        })
+      });
+      setTimeout(()=>pullCloud(),100);
+    }catch(e){
+      console.error("Oil repair sync failed:",e);
+      syncStatus("⚠️ تم تصفير عداد الزيت محليًا، اضغط مزامنة لحفظه في السحابة.");
+    }
+  }
+  render();
+}
 function migrate(){for(const k of["days","fuels","expenses","personal"]){let a=get(k),changed=false;a=a.map(x=>{if(!x.id){x.id=uid();changed=true}return x});if(changed)set(k,a)}}
 if(!localStorage.getItem("oil")){
   const legacy=JSON.parse(localStorage.getItem("car")||"{}");
@@ -525,7 +559,7 @@ if(!localStorage.getItem("oil")){
     driven:Math.max(0,Number(o.driven)||0)
   }));
 }
-$("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();
+$("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();repairOilState();
 $("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 (function initOilUI(){const o=getOil();$("oilRemainingInput").value=Number(o.remaining)||0;$("oilInterval").value=Number(o.interval)||10000})();
 render();updateQuickEntry();renderAuth();if(session()?.user)setTimeout(pullCloud,400);
