@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk FINAL • النسخة المستقرة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk FINAL • المصاريف الشخصية • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -299,6 +299,12 @@ async function cloudUp(table,rows){
   await sb("/rest/v1/"+table,{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(payload)});
 }
 async function settingsUp(){const s=session();if(!s?.user)return;const o=getOil();await sb("/rest/v1/settings",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:s.user.id,goal:+localStorage.getItem("goal")||0,oil_remaining:+o.remaining||0,oil_interval:+o.interval||10000,oil_driven:+o.driven||0})})}
+function mergeCloudRows(localRows,cloudRows){
+  const map=new Map();
+  for(const x of cloudRows||[])map.set(String(x.id),x);
+  for(const x of localRows||[])map.set(String(x.id),x);
+  return Array.from(map.values());
+}
 async function pullCloud(){
   const s=session();if(!s?.user||cloudBusy)return;
   if(localStorage.getItem("dd_oil_dirty")==="1"){
@@ -317,10 +323,28 @@ async function pullCloud(){
       cloudGet("days"),cloudGet("fuels"),cloudGet("expenses"),
       cloudGet("personal_expenses"),cloudGet("settings")
     ]);
-    localStorage.setItem("days",JSON.stringify(d.map(x=>({id:x.id,date:x.date,parcels:+x.parcels||0,distance:+x.distance||0}))));
-    localStorage.setItem("fuels",JSON.stringify(f.map(x=>({id:x.id,date:x.date,price:+x.price||0,liters:+x.liters||0,odo:+x.odo||0}))));
-    localStorage.setItem("expenses",JSON.stringify(e.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""}))));
-    localStorage.setItem("personal",JSON.stringify(p.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""}))));
+    const localDays=get("days"),localFuels=get("fuels"),localExpenses=get("expenses"),localPersonal=get("personal");
+    const cloudDays=d.map(x=>({id:x.id,date:x.date,parcels:+x.parcels||0,distance:+x.distance||0}));
+    const cloudFuels=f.map(x=>({id:x.id,date:x.date,price:+x.price||0,liters:+x.liters||0,odo:+x.odo||0}));
+    const cloudExpenses=e.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""}));
+    const cloudPersonal=p.map(x=>({id:x.id,date:x.date,amount:+x.amount||0,note:x.note||""}));
+
+    const mergedDays=mergeCloudRows(localDays,cloudDays);
+    const mergedFuels=mergeCloudRows(localFuels,cloudFuels);
+    const mergedExpenses=mergeCloudRows(localExpenses,cloudExpenses);
+    const mergedPersonal=mergeCloudRows(localPersonal,cloudPersonal);
+
+    localStorage.setItem("days",JSON.stringify(mergedDays));
+    localStorage.setItem("fuels",JSON.stringify(mergedFuels));
+    localStorage.setItem("expenses",JSON.stringify(mergedExpenses));
+    localStorage.setItem("personal",JSON.stringify(mergedPersonal));
+
+    // Push local-only records so a new device/local entry is not merely displayed once;
+    // it becomes part of the cloud dataset too.
+    await cloudUp("days",mergedDays);
+    await cloudUp("fuels",mergedFuels);
+    await cloudUp("expenses",mergedExpenses);
+    await cloudUp("personal_expenses",mergedPersonal);
     if(st[0]){
       localStorage.setItem("goal",String(+st[0].goal||0));
       localStorage.setItem("oil",JSON.stringify({remaining:+st[0].oil_remaining||0,interval:+st[0].oil_interval||10000,driven:+st[0].oil_driven||0}));
@@ -408,6 +432,7 @@ async function savePersonal(){
   if(session()?.user){
     try{
       await cloudUp("personal_expenses",[x]);
+      render();
       syncStatus("☁️ تم حفظ المصروف الشخصي ومزامنته",true);
     }catch(e){
       syncStatus("⚠️ حُفظ المصروف على الجهاز ولم يصل للسحابة: "+e.message);
