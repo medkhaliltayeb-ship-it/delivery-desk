@@ -170,7 +170,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
         <div class="mini"><span>🛡️ التأمين</span><b id="mInsurance">140.00 €</b></div>
         <div class="mini"><span>🧾 مصاريف العمل</span><b id="mExpenses">0.00 €</b></div>
         <div class="mini green"><span>💼 صافي ربح العمل</span><b id="mWorkNet">—</b></div>
-        <div class="mini"><span>👤 المصاريف الشخصية</span><b id="mPersonal">0.00 €</b></div>
+        <div class="mini"><span>👤 المصاريف الشخصية</span><b id="mPersonal">0.00 €</b><small class="note">تُطرح من صافي ربح العمل</small></div>
         <div class="mini green"><span>🟢 المتبقي بعد كل المصاريف</span><b id="mFinal">—</b></div>
       </div>
       <button class="btn primary wide" onclick="simulateMonth()">✨ محاكاة نهاية الشهر</button>
@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.8 • جلسة مزامنة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk V11.9 • المصاريف الشخصية • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -349,8 +349,10 @@ function fuelEstimate(){
 function monthCalc(m){
   const d=monthData(m),income=d.days.reduce((s,x)=>s+(+x.parcels||0),0)*PRICE;
   const km=d.days.reduce((s,x)=>s+(+x.distance||0),0),side=d.expenses.reduce((s,x)=>s+(+x.amount||0),0),personal=d.personal.reduce((s,x)=>s+(+x.amount||0),0);
-  const est=fuelEstimate(),fuel=est?km*est.l100/100*est.avgPrice:null,workNet=fuel===null?null:income-fuel-INSURANCE-side;
-  return{...d,income,km,side,personal,fuel,workNet,final:workNet===null?null:workNet-personal,parcels:d.days.reduce((s,x)=>s+(+x.parcels||0),0)};
+  const est=fuelEstimate(),fuel=est?km*est.l100/100*est.avgPrice:null;
+  const workNet=fuel===null?null:income-fuel-INSURANCE-side;
+  const final=workNet===null?null:workNet-personal;
+  return{...d,income,km,side,personal,fuel,workNet,final,parcels:d.days.reduce((s,x)=>s+(+x.parcels||0),0)};
 }
 function previousMonth(m){let d=new Date(m+"-01T12:00:00");d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)}
 function workNet(m){return monthCalc(m).workNet}
@@ -387,7 +389,7 @@ function saveDay(){
 }
 function saveFuel(){let x={id:uid(),date:$("fuelDate").value,price:+$("fuelPrice").value||0,liters:+$("fuelLiters").value||0,odo:+$("fuelOdo").value||0};if(!x.date||!x.price||!x.liters||!x.odo)return alert("أكمل بيانات التعبئة.");let a=get("fuels");a.push(x);set("fuels",a);render();["fuelPrice","fuelLiters","fuelOdo"].forEach(id=>$(id).value="")}
 function saveExpense(){let x={id:uid(),date:$("expDate").value,amount:+$("expAmount").value||0,note:$("expNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("expenses");a.push(x);set("expenses",a);render();$("expAmount").value="";$("expNote").value=""}
-function savePersonal(){let x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("personal");a.push(x);set("personal",a);render();$("personalAmount").value="";$("personalNote").value=""}
+function savePersonal(){let x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("personal");a.push(x);set("personal",a);if(session()?.user)syncNow();render();$("personalAmount").value="";$("personalNote").value=""}
 function remove(key,id){
   if(!confirm("هل تريد حذف هذه المعلومة؟"))return;
   const arr=get(key), item=arr.find(x=>String(x.id)===String(id));
