@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk FINAL • المصاريف الشخصية • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk FINAL • إصلاح عرض المصاريف الشخصية • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -422,13 +422,14 @@ function saveDay(){
 function saveFuel(){let x={id:uid(),date:$("fuelDate").value,price:+$("fuelPrice").value||0,liters:+$("fuelLiters").value||0,odo:+$("fuelOdo").value||0};if(!x.date||!x.price||!x.liters||!x.odo)return alert("أكمل بيانات التعبئة.");let a=get("fuels");a.push(x);set("fuels",a);render();["fuelPrice","fuelLiters","fuelOdo"].forEach(id=>$(id).value="")}
 function saveExpense(){let x={id:uid(),date:$("expDate").value,amount:+$("expAmount").value||0,note:$("expNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("expenses");a.push(x);set("expenses",a);render();$("expAmount").value="";$("expNote").value=""}
 async function savePersonal(){
-  const x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};
-  if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");
+  const date=$("personalDate").value||today();
+  const x={id:uid(),date,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};
+  if(!x.amount)return alert("أدخل المبلغ.");
   let a=get("personal");
   a.push(x);
   set("personal",a);
   render();
-  $("personalAmount").value="";$("personalNote").value="";
+  $("personalAmount").value="";$("personalNote").value="";$("personalDate").value=today();
   if(session()?.user){
     try{
       await cloudUp("personal_expenses",[x]);
@@ -683,7 +684,8 @@ if(localStorage.getItem("dd_oil_sync_v11_7_migrated")!=="1"){
   localStorage.removeItem("dd_oil_dirty");
   localStorage.setItem("dd_oil_sync_v11_7_migrated","1");
 }
-$("month").value=today().slice(0,7);for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();repairOilState();
+$("month").value=today().slice(0,7);
+if(!$("personalDate").value)$("personalDate").value=today();for(const id of["dayDate","fuelDate","expDate","personalDate"])$(id).value=today();migrate();repairOilState();
 $("month").addEventListener("change",render);$("dayDate").addEventListener("change",updateQuickEntry);$("authModal").addEventListener("click",e=>{if(e.target===$("authModal"))closeAuth();});$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 (function initOilUI(){const o=getOil();$("oilRemainingInput").value=Number(o.remaining)||0;$("oilInterval").value=Number(o.interval)||10000})();
 render();updateQuickEntry();renderAuth();
