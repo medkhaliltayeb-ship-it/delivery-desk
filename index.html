@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk V11.9 • المصاريف الشخصية • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk FINAL • النسخة المستقرة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -336,7 +336,15 @@ async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBu
   syncStatus("⚠️ لم تكتمل المزامنة: "+msg);
   console.error("Delivery Desk sync error:",e);
 }finally{cloudBusy=false}}
-function monthData(month=$("month").value){return{days:get("days").filter(x=>x.date.startsWith(month)),fuels:get("fuels").filter(x=>x.date.startsWith(month)),expenses:get("expenses").filter(x=>x.date.startsWith(month)),personal:get("personal").filter(x=>x.date.startsWith(month))}}
+function monthData(month=$("month").value){
+  const inMonth=x=>String(x.date||"").slice(0,7)===String(month);
+  return{
+    days:get("days").filter(inMonth),
+    fuels:get("fuels").filter(inMonth),
+    expenses:get("expenses").filter(inMonth),
+    personal:get("personal").filter(inMonth)
+  };
+}
 function fuelEstimate(){
   const f=get("fuels").filter(x=>x.odo>0&&x.liters>0).sort((a,b)=>a.odo-b.odo);
   if(f.length<2)return null;
@@ -389,21 +397,40 @@ function saveDay(){
 }
 function saveFuel(){let x={id:uid(),date:$("fuelDate").value,price:+$("fuelPrice").value||0,liters:+$("fuelLiters").value||0,odo:+$("fuelOdo").value||0};if(!x.date||!x.price||!x.liters||!x.odo)return alert("أكمل بيانات التعبئة.");let a=get("fuels");a.push(x);set("fuels",a);render();["fuelPrice","fuelLiters","fuelOdo"].forEach(id=>$(id).value="")}
 function saveExpense(){let x={id:uid(),date:$("expDate").value,amount:+$("expAmount").value||0,note:$("expNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("expenses");a.push(x);set("expenses",a);render();$("expAmount").value="";$("expNote").value=""}
-function savePersonal(){let x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");let a=get("personal");a.push(x);set("personal",a);if(session()?.user)syncNow();render();$("personalAmount").value="";$("personalNote").value=""}
-function remove(key,id){
+async function savePersonal(){
+  const x={id:uid(),date:$("personalDate").value,amount:+$("personalAmount").value||0,note:$("personalNote").value.trim()};
+  if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");
+  let a=get("personal");
+  a.push(x);
+  set("personal",a);
+  render();
+  $("personalAmount").value="";$("personalNote").value="";
+  if(session()?.user){
+    try{
+      await cloudUp("personal_expenses",[x]);
+      syncStatus("☁️ تم حفظ المصروف الشخصي ومزامنته",true);
+    }catch(e){
+      syncStatus("⚠️ حُفظ المصروف على الجهاز ولم يصل للسحابة: "+e.message);
+    }
+  }
+}
+async function remove(key,id){
   if(!confirm("هل تريد حذف هذه المعلومة؟"))return;
   const arr=get(key), item=arr.find(x=>String(x.id)===String(id));
   if(!item)return;
 
-  // إذا حذفنا يومية، نعيد مسافتها إلى عداد الزيت حتى لا تختفي المسافة
-  // من السجل ويبقى عداد الزيت ناقصًا بشكل خاطئ.
   if(key==="days" && Number(item.distance)>0){
     updateOilFromDistance(-Number(item.distance));
   }
 
   set(key,arr.filter(x=>String(x.id)!==String(id)));
   const cloudTable=key==="personal"?"personal_expenses":key;
-  cloudDelete(cloudTable,id).catch(e=>syncStatus("⚠️ لم يُحذف من السحابة: "+e.message));
+  try{
+    if(session()?.user)await cloudDelete(cloudTable,id);
+    if(session()?.user)await syncNow();
+  }catch(e){
+    syncStatus("⚠️ حُذف محليًا لكن تعذر تحديث السحابة: "+e.message);
+  }
   render();
 }
 function openModal(t,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=b;$("modal").classList.add("show")}function closeModal(){$("modal").classList.remove("show")}
@@ -427,24 +454,40 @@ function updFuel(id){let a=get("fuels"),x=a.find(v=>v.id===id);x.date=$("f1").va
 function editExpense(id){let x=get("expenses").find(v=>v.id===id);if(!x)return;openModal("تعديل مصروف العمل",`<div class="fields"><div><label>التاريخ</label><input id="x1" type="date" value="${x.date}"></div><div><label>المبلغ</label><input id="x2" type="number" step=".01" value="${x.amount}"></div><div style="grid-column:1/-1"><label>الوصف</label><input id="x3" value="${x.note||""}"></div></div><button class="btn primary wide" onclick="updExp('${id}')">حفظ</button>`)}
 function updExp(id){let a=get("expenses"),x=a.find(v=>v.id===id);x.date=$("x1").value;x.amount=+$("x2").value||0;x.note=$("x3").value;set("expenses",a);closeModal();render()}
 function editPersonal(id){let x=get("personal").find(v=>v.id===id);if(!x)return;openModal("تعديل المصروف الشخصي",`<div class="fields"><div><label>التاريخ</label><input id="p1" type="date" value="${x.date}"></div><div><label>المبلغ</label><input id="p2" type="number" step=".01" value="${x.amount}"></div><div style="grid-column:1/-1"><label>الوصف</label><input id="p3" value="${x.note||""}"></div></div><button class="btn primary wide" onclick="updPersonal('${id}')">حفظ</button>`)}
-function updPersonal(id){let a=get("personal"),x=a.find(v=>v.id===id);x.date=$("p1").value;x.amount=+$("p2").value||0;x.note=$("p3").value;set("personal",a);closeModal();render()}
-function deleteMonth(){
-  let m=$("month").value;if(!m)return;
+async function updPersonal(id){
+  let a=get("personal"),x=a.find(v=>v.id===id);if(!x)return;
+  x.date=$("p1").value;x.amount=+$("p2").value||0;x.note=$("p3").value;
+  if(!x.date||!x.amount)return alert("أدخل التاريخ والمبلغ.");
+  set("personal",a);closeModal();render();
+  if(session()?.user){
+    try{await cloudUp("personal_expenses",[x]);syncStatus("☁️ تم تحديث المصروف الشخصي",true)}
+    catch(e){syncStatus("⚠️ تم تحديثه على الجهاز فقط: "+e.message)}
+  }
+}
+async function deleteMonth(){
+  const m=$("month").value;if(!m)return;
   if(!confirm("⚠️ سيتم حذف كل بيانات هذا الشهر: اليومية والبنزين ومصاريف العمل والمصاريف الشخصية. لا يمكن التراجع. هل أنت متأكد؟"))return;
 
-  // عند حذف شهر كامل، نرجع مسافات أيامه إلى عداد الزيت.
   const removedDistance=get("days")
-    .filter(x=>x.date.startsWith(m))
+    .filter(x=>String(x.date||"").slice(0,7)===m)
     .reduce((s,x)=>s+(Number(x.distance)||0),0);
   if(removedDistance)updateOilFromDistance(-removedDistance);
 
+  const jobs=[];
   for(const k of["days","fuels","expenses","personal"]){
-    const rows=get(k),removed=rows.filter(x=>x.date.startsWith(m));
-    set(k,rows.filter(x=>!x.date.startsWith(m)));
+    const rows=get(k),removed=rows.filter(x=>String(x.date||"").slice(0,7)===m);
+    set(k,rows.filter(x=>String(x.date||"").slice(0,7)!==m));
     const cloudTable=k==="personal"?"personal_expenses":k;
-    Promise.all(removed.map(x=>cloudDelete(cloudTable,x.id))).catch(e=>syncStatus("⚠️ لم يُحذف الشهر كاملًا من السحابة: "+e.message));
+    if(session()?.user)jobs.push(...removed.map(x=>cloudDelete(cloudTable,x.id)));
   }
-  render();
+  try{
+    if(jobs.length)await Promise.all(jobs);
+    if(session()?.user)await syncNow();
+    render();
+  }catch(e){
+    syncStatus("⚠️ حُذف الشهر محليًا لكن تعذر إكمال الحذف السحابي: "+e.message);
+    render();
+  }
 }
 function simulateMonth(){const c=monthCalc($("month").value);openModal("✨ محاكاة نهاية الشهر",`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 مصاريف شخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><p class="note">المحاكاة لا تغلق الشهر ولا تغير البيانات.</p></div>`)}
 function editGoal(){let g=+localStorage.getItem("goal")||0;openModal("🎯 هدف صافي ربح العمل",`<label>الهدف الشهري (€)</label><input id="goalInput" type="number" min="0" step="100" value="${g}"><button class="btn primary wide" onclick="saveGoal()">حفظ الهدف</button>`)}
@@ -549,13 +592,15 @@ function render(){
 }
 function openReport(){let c=monthCalc($("month").value),m=$("month").value;openModal("📑 تقرير "+m,`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 المصاريف الشخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي النهائي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><h3>💡 الربح التقريبي لكل طرد</h3><div class="reportRow"><span>صافي ربح العمل ÷ عدد الطرود</span><b>${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}</b></div></div>`)}
 function exportReport(){let c=monthCalc($("month").value),txt=`Delivery Desk - ${$("month").value}\n\nالطرود: ${c.parcels}\nالدخل: ${euro(c.income)}\nالبنزين: ${c.fuel===null?"غير متاح":euro(c.fuel)}\nالتأمين: ${euro(INSURANCE)}\nمصاريف العمل: ${euro(c.side)}\nصافي ربح العمل: ${c.workNet===null?"غير متاح":euro(c.workNet)}\nالمصاريف الشخصية: ${euro(c.personal)}\nالمتبقي النهائي: ${c.final===null?"غير متاح":euro(c.final)}\nربح الطرد: ${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}`;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));a.download=`delivery-report-${$("month").value}.txt`;a.click()}
-function exportData(){let data={version:10,days:get("days"),fuels:get("fuels"),expenses:get("expenses"),personal:get("personal"),goal:localStorage.getItem("goal"),oil:getOil()};let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="delivery-backup.json";a.click()}
+function exportData(){let data={version:12,days:get("days"),fuels:get("fuels"),expenses:get("expenses"),personal:get("personal"),goal:localStorage.getItem("goal"),oil:getOil()};let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="delivery-backup.json";a.click()}
 function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);for(const k of["days","fuels","expenses","personal"])if(Array.isArray(d[k]))set(k,d[k].map(x=>({...x,id:x.id||uid()})));if(d.goal!=null)localStorage.setItem("goal",d.goal);
     if(d.oil&&typeof d.oil==="object"){
       const oil={remaining:Math.max(0,Number(d.oil.remaining)||0),interval:Math.max(1,Number(d.oil.interval)||10000),driven:Math.max(0,Number(d.oil.driven)||0)};
       localStorage.setItem("oil",JSON.stringify(oil));
     }
-    render();alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
+    render();
+    if(session()?.user)syncNow();
+    alert("تم استرجاع النسخة الاحتياطية.")}catch(err){alert("ملف النسخة الاحتياطية غير صالح.")}};r.readAsText(f)}
 async function repairOilState(){
   if(localStorage.getItem("dd_oil_repaired_v11_5")==="1")return;
   if(localStorage.getItem("dd_oil_dirty")==="1")return;
