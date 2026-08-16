@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 7px;
       <div class="tableWrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>إجراءات</th></tr></thead><tbody id="personalExpenses"></tbody></table></div>
     </section>
   </div>
-  <div class="footer">Delivery Desk FINAL • مزامنة مستقرة • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
+  <div class="footer">Delivery Desk FINAL • إصلاح عرض المصاريف • البيانات محلية على جهازك حاليًا • سعر الطرد 1.40€ والتأمين 140€/شهر محفوظان داخل البرنامج.</div>
 </div>
 
 <div id="authModal" class="modal"><div class="modalBox"><div class="modalHead"><h2>☁️ المزامنة</h2><button class="x" onclick="closeAuth()">×</button></div><div class="authForm"><label>البريد الإلكتروني</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"><label>كلمة المرور</label><input id="authPassword" type="password" autocomplete="current-password"><button class="btn primary" onclick="authLogin()">تسجيل الدخول</button><button class="btn light" onclick="authSignup()">إنشاء حساب جديد</button><p class="note">استخدم البريد وكلمة المرور فقط. لا تدخل أي Secret Key هنا.</p></div></div></div><div id="modal" class="modal"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">تعديل</h2><button class="x" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -390,13 +390,24 @@ async function syncNow(){const s=session();if(!s?.user||cloudBusy)return;cloudBu
   syncStatus("⚠️ لم تكتمل المزامنة: "+msg);
   console.error("Delivery Desk sync error:",e);
 }finally{cloudBusy=false}}
+function normalizeDate(v){
+  const s=String(v||"").trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  const m=s.match(/^(\d{2})[\\/-](\d{2})[\\/-](\d{4})$/);
+  if(m)return `${m[3]}-${m[2]}-${m[1]}`;
+  return s;
+}
+function personalRowsForMonth(month){
+  const target=String(month||"");
+  return get("personal").filter(x=>normalizeDate(x.date).slice(0,7)===target);
+}
 function monthData(month=$("month").value){
   const inMonth=x=>String(x.date||"").slice(0,7)===String(month);
   return{
     days:get("days").filter(inMonth),
     fuels:get("fuels").filter(inMonth),
     expenses:get("expenses").filter(inMonth),
-    personal:get("personal").filter(inMonth)
+    personal:personalRowsForMonth(month)
   };
 }
 function fuelEstimate(){
@@ -669,7 +680,8 @@ function render(){
   $("days").innerHTML=c.days.length?c.days.map(x=>`<tr><td>${x.date}</td><td>${x.parcels}</td><td>${Number(x.distance).toFixed(1)} كم</td><td>${euro(x.parcels*PRICE)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editDay('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('days','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="5" class="empty">لا توجد يوميات لهذا الشهر.</td></tr>';
   $("fuels").innerHTML=c.fuels.length?c.fuels.map(x=>`<tr><td>${x.date}</td><td>${Number(x.price).toFixed(3)} €</td><td>${Number(x.liters).toFixed(2)} L</td><td>${Number(x.odo).toLocaleString()}</td><td>${euro(x.price*x.liters)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editFuel('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('fuels','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="6" class="empty">لا توجد تعبئات لهذا الشهر.</td></tr>';
   $("expenses").innerHTML=c.expenses.length?c.expenses.map(x=>`<tr><td>${x.date}</td><td>${x.note||"—"}</td><td>${euro(x.amount)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editExpense('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('expenses','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="4" class="empty">لا توجد مصاريف لهذا الشهر.</td></tr>';
-  $("personalExpenses").innerHTML=c.personal.length?c.personal.map(x=>`<tr><td>${x.date}</td><td>${x.note||"—"}</td><td>${euro(x.amount)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editPersonal('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('personal','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="4" class="empty">لا توجد مصاريف شخصية لهذا الشهر.</td></tr>';
+  const personalRows=personalRowsForMonth(m);
+  $("personalExpenses").innerHTML=personalRows.length?personalRows.map(x=>`<tr><td>${normalizeDate(x.date)}</td><td>${x.note||"—"}</td><td>${euro(x.amount)}</td><td><div class="actions"><button class="btn light smallBtn" onclick="editPersonal('${x.id}')">تعديل</button><button class="btn danger smallBtn" onclick="remove('personal','${x.id}')">حذف</button></div></td></tr>`).join(""):'<tr><td colspan="4" class="empty">لا توجد مصاريف شخصية لهذا الشهر.</td></tr>';
 }
 function openReport(){let c=monthCalc($("month").value),m=$("month").value;openModal("📑 تقرير "+m,`<div class="report"><div class="reportRow"><span>📦 الطرود</span><b>${c.parcels}</b></div><div class="reportRow"><span>💶 الدخل</span><b>${euro(c.income)}</b></div><div class="reportRow"><span>⛽ البنزين</span><b>${c.fuel===null?"غير متاح":euro(c.fuel)}</b></div><div class="reportRow"><span>🛡️ التأمين</span><b>${euro(INSURANCE)}</b></div><div class="reportRow"><span>🧾 مصاريف العمل</span><b>${euro(c.side)}</b></div><div class="reportRow"><span>💼 صافي ربح العمل</span><b>${c.workNet===null?"غير متاح":euro(c.workNet)}</b></div><div class="reportRow"><span>👤 المصاريف الشخصية</span><b>${euro(c.personal)}</b></div><div class="reportRow"><span>🟢 المتبقي النهائي</span><b>${c.final===null?"غير متاح":euro(c.final)}</b></div><h3>💡 الربح التقريبي لكل طرد</h3><div class="reportRow"><span>صافي ربح العمل ÷ عدد الطرود</span><b>${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}</b></div></div>`)}
 function exportReport(){let c=monthCalc($("month").value),txt=`Delivery Desk - ${$("month").value}\n\nالطرود: ${c.parcels}\nالدخل: ${euro(c.income)}\nالبنزين: ${c.fuel===null?"غير متاح":euro(c.fuel)}\nالتأمين: ${euro(INSURANCE)}\nمصاريف العمل: ${euro(c.side)}\nصافي ربح العمل: ${c.workNet===null?"غير متاح":euro(c.workNet)}\nالمصاريف الشخصية: ${euro(c.personal)}\nالمتبقي النهائي: ${c.final===null?"غير متاح":euro(c.final)}\nربح الطرد: ${c.workNet!==null&&c.parcels?euro(c.workNet/c.parcels):"غير متاح"}`;let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));a.download=`delivery-report-${$("month").value}.txt`;a.click()}
